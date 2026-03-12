@@ -109,7 +109,7 @@ select:focus, select:hover { border-color: var(--neon); }
 .filter-divider { width: 1px; height: 20px; background: var(--rim); margin: 0 4px; }
 
 /* ─── KPI ROW ─── */
-.kpi-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 14px; margin-bottom: 24px; }
 .kpi {
   background: var(--panel); border: 1px solid var(--rim); border-radius: 14px;
   padding: 20px 22px; position: relative; overflow: hidden;
@@ -144,7 +144,7 @@ select:focus, select:hover { border-color: var(--neon); }
 
 /* ─── GRID CHARTS ─── */
 .charts-row { display: grid; grid-template-columns: 340px 1fr 320px; gap: 14px; margin-bottom: 14px; }
-.charts-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.charts-row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 24px; }
 .chart-card {
   background: var(--panel); border: 1px solid var(--rim); border-radius: 14px; padding: 20px;
 }
@@ -267,6 +267,7 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
   .charts-row .chart-card:nth-child(3) { grid-column: span 2; }
   .celulas-row { grid-template-columns: repeat(2,1fr); }
   .kpi-row { grid-template-columns: repeat(3,1fr); }
+  .kpi-row .kpi:last-child { grid-column: span 3; }
 }
 </style>
 </head>
@@ -321,6 +322,24 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
     <div class="kpi k-cyan"><div class="kpi-glow"></div><div class="kpi-top"><span class="kpi-icon">◉</span></div><div class="kpi-val" id="kv-open">0</div><div class="kpi-label">Em Aberto</div></div>
     <div class="kpi k-hot"><div class="kpi-glow"></div><div class="kpi-top"><span class="kpi-icon">⚡</span></div><div class="kpi-val" id="kv-sla">0</div><div class="kpi-label">SLA Excedido</div></div>
     <div class="kpi k-warm"><div class="kpi-glow"></div><div class="kpi-top"><span class="kpi-icon">⏱</span></div><div class="kpi-val" id="kv-days">0</div><div class="kpi-label">Dias Médios</div></div>
+    <div class="kpi k-ratio" style="--ratio-color:#a78bfa">
+      <div class="kpi-glow" style="background:#a78bfa"></div>
+      <div class="kpi-top"><span class="kpi-icon">📊</span></div>
+      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:4px">
+        <div>
+          <div class="kpi-val" id="kv-pct-open" style="background:linear-gradient(135deg,#3d7fff,#00c9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px">0%</div>
+          <div class="kpi-label">Em Aberto</div>
+        </div>
+        <div style="color:var(--fog);font-size:18px;margin-bottom:6px">/</div>
+        <div>
+          <div class="kpi-val" id="kv-pct-closed" style="background:linear-gradient(135deg,#00e59b,#00b8a9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px">0%</div>
+          <div class="kpi-label">Encerrados</div>
+        </div>
+      </div>
+      <div style="background:var(--rim);border-radius:3px;height:5px;overflow:hidden;margin-top:6px">
+        <div id="kv-ratio-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,#3d7fff,#00e59b);transition:width 0.8s ease"></div>
+      </div>
+    </div>
   </div>
 
   <!-- CHARTS ROW 1 -->
@@ -342,8 +361,14 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
 
   <!-- CHARTS ROW 2 -->
   <div class="charts-row2">
-    <div class="chart-card">
-      <div class="cc-head"><div><div class="cc-title">Evolução Mensal</div><div class="cc-sub">Abertura de chamados</div></div></div>
+    <div class="chart-card" style="grid-column:span 2">
+      <div class="cc-head">
+        <div><div class="cc-title">Evolução Mensal</div><div class="cc-sub">Abertos vs Encerrados · % do total mensal</div></div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:3px;background:#3d7fff;border-radius:2px"></span><span style="font-size:10px;color:var(--fog)">Abertos</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:3px;background:#00e59b;border-radius:2px"></span><span style="font-size:10px;color:var(--fog)">Encerrados</span></div>
+        </div>
+      </div>
       <div class="chart-box h240"><canvas id="ch-monthly"></canvas></div>
     </div>
     <div class="chart-card">
@@ -493,6 +518,12 @@ function updateKPIs() {
   document.getElementById('kv-open').textContent = fmt(open);
   document.getElementById('kv-sla').textContent = fmt(slaOver);
   document.getElementById('kv-days').textContent = avg;
+  const base = closed + open;
+  const pctOpen = base ? Math.round(open/base*100) : 0;
+  const pctClosed = base ? Math.round(closed/base*100) : 0;
+  document.getElementById('kv-pct-open').textContent = pctOpen + '%';
+  document.getElementById('kv-pct-closed').textContent = pctClosed + '%';
+  document.getElementById('kv-ratio-bar').style.width = pctClosed + '%';
 }
 
 function fmt(n){ return n.toLocaleString('pt-BR'); }
@@ -542,21 +573,57 @@ function updateCharts() {
     options:{ ...CHART_DEFAULTS, plugins:{legend:{display:false}}, scales:{ x:{...CHART_DEFAULTS.scales.x}, y:{...CHART_DEFAULTS.scales.y,max:100,ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>v+'%'}} } }
   });
 
-  // MONTHLY
+  // MONTHLY — abertos vs encerrados com % no tooltip
   destroyChart('monthly');
-  const mon = {};
-  d.forEach(r=>{ if(r.Abertura){ const m=r.Abertura.slice(0,7); mon[m]=(mon[m]||0)+1; } });
-  const monKeys = Object.keys(mon).sort().slice(-14);
-  const gradient = (ctx) => {
+  const monOpen = {}, monClosed = {};
+  d.forEach(r=>{
+    if(!r.Abertura) return;
+    const m = r.Abertura.slice(0,7);
+    if(r['Status C']==='ABERTOS')   monOpen[m]   = (monOpen[m]||0)+1;
+    if(r['Status C']==='ENCERRADOS') monClosed[m] = (monClosed[m]||0)+1;
+  });
+  const allMonths = [...new Set([...Object.keys(monOpen),...Object.keys(monClosed)])].sort().slice(-14);
+  const openVals   = allMonths.map(k=>monOpen[k]||0);
+  const closedVals = allMonths.map(k=>monClosed[k]||0);
+  const gradOpen = (ctx) => {
     const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
-    g.addColorStop(0,'rgba(61,127,255,0.4)'); g.addColorStop(1,'rgba(61,127,255,0)'); return g;
+    g.addColorStop(0,'rgba(61,127,255,0.35)'); g.addColorStop(1,'rgba(61,127,255,0)'); return g;
+  };
+  const gradClosed = (ctx) => {
+    const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+    g.addColorStop(0,'rgba(0,229,155,0.25)'); g.addColorStop(1,'rgba(0,229,155,0)'); return g;
   };
   charts['monthly'] = new Chart(document.getElementById('ch-monthly'), {
     type:'line',
-    data:{ labels:monKeys.map(k=>{const[y,m]=k.split('-');return`${m}/${y.slice(2)}`;}),
-      datasets:[{data:monKeys.map(k=>mon[k]), borderColor:'#3d7fff', backgroundColor:function(ctx){return gradient(ctx);},
-        tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#3d7fff', pointBorderColor:'#10152a', pointBorderWidth:2 }] },
-    options:{ ...CHART_DEFAULTS, plugins:{legend:{display:false}} }
+    data:{
+      labels: allMonths.map(k=>{ const[y,m]=k.split('-'); return`${m}/${y.slice(2)}`; }),
+      datasets:[
+        { label:'Abertos', data:openVals, borderColor:'#3d7fff', backgroundColor:function(ctx){return gradOpen(ctx);},
+          tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#3d7fff', pointBorderColor:'#10152a', pointBorderWidth:2 },
+        { label:'Encerrados', data:closedVals, borderColor:'#00e59b', backgroundColor:function(ctx){return gradClosed(ctx);},
+          tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#00e59b', pointBorderColor:'#10152a', pointBorderWidth:2 }
+      ]
+    },
+    options:{
+      ...CHART_DEFAULTS,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label: function(ctx){
+              const idx = ctx.dataIndex;
+              const tot = openVals[idx] + closedVals[idx];
+              const pct = tot ? Math.round(ctx.raw/tot*100) : 0;
+              return ` ${ctx.dataset.label}: ${ctx.raw} (${pct}% do mês)`;
+            }
+          },
+          backgroundColor:'rgba(11,14,28,0.95)',
+          borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
+          titleColor:'#e8f0ff', bodyColor:'#8899cc',
+          padding:10, cornerRadius:8
+        }
+      }
+    }
   });
 
   // CELL GROUPED BAR
