@@ -111,15 +111,15 @@ select:focus, select:hover { border-color: var(--neon); }
 /* ─── KPI ROW ─── */
 .kpi-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 14px; margin-bottom: 24px; }
 .kpi {
-  background: var(--panel); border: 1px solid var(--rim); border-radius: 14px;
-  padding: 20px 22px; position: relative; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--rim); border-radius: 12px;
+  padding: 13px 16px; position: relative; overflow: hidden;
   transition: transform 0.2s, border-color 0.2s;
   cursor: default;
 }
 .kpi:hover { transform: translateY(-3px); border-color: var(--rim2); }
 .kpi-glow {
-  position: absolute; top: -30px; right: -30px;
-  width: 90px; height: 90px; border-radius: 50%; opacity: 0.12; filter: blur(20px);
+  position: absolute; top: -20px; right: -20px;
+  width: 60px; height: 60px; border-radius: 50%; opacity: 0.12; filter: blur(16px);
 }
 .kpi.k-blue .kpi-glow { background: var(--neon); }
 .kpi.k-mint .kpi-glow { background: var(--mint); }
@@ -127,24 +127,29 @@ select:focus, select:hover { border-color: var(--neon); }
 .kpi.k-warm .kpi-glow { background: var(--warm); }
 .kpi.k-cyan .kpi-glow { background: var(--neon2); }
 .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
-.kpi-icon { font-size: 18px; opacity: 0.85; }
+.kpi-icon { font-size: 14px; opacity: 0.85; }
 .kpi-trend { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
 .kpi-val {
-  font-family: var(--font-display); font-size: 42px; line-height: 1;
+  font-family: var(--font-display); font-size: 28px; line-height: 1;
   background: linear-gradient(135deg, var(--ice), var(--mist));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .kpi.k-blue .kpi-val { background: linear-gradient(135deg, var(--neon), var(--neon2)); -webkit-background-clip: text; }
 .kpi.k-mint .kpi-val { background: linear-gradient(135deg, var(--mint), #00b8a9); -webkit-background-clip: text; }
 .kpi.k-hot .kpi-val { background: linear-gradient(135deg, var(--hot), #ff8c69); -webkit-background-clip: text; }
 .kpi.k-warm .kpi-val { background: linear-gradient(135deg, var(--warm), #ffe066); -webkit-background-clip: text; }
 .kpi.k-cyan .kpi-val { background: linear-gradient(135deg, var(--neon2), #a8f0ff); -webkit-background-clip: text; }
-.kpi-label { font-size: 11px; color: var(--fog); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+.kpi-label { font-size: 10px; color: var(--fog); font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
 
 /* ─── GRID CHARTS ─── */
-.charts-row { display: grid; grid-template-columns: 340px 1fr 320px; gap: 14px; margin-bottom: 14px; }
-.charts-row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 24px; }
+.charts-row { display: grid; grid-template-columns: 360px 1fr; gap: 14px; margin-bottom: 14px; align-items: stretch; }
+.charts-col { display: flex; flex-direction: column; gap: 14px; }
+.charts-col .chart-card { flex: 1; display: flex; flex-direction: column; }
+.charts-col .chart-card .chart-box { flex: 1; height: auto !important; min-height: 130px; }
+.charts-row > .chart-card { display: flex; flex-direction: column; }
+.charts-row > .chart-card .chart-box { flex: 1; height: auto !important; min-height: 200px; }
+.charts-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
 .chart-card {
   background: var(--panel); border: 1px solid var(--rim); border-radius: 14px; padding: 20px;
 }
@@ -157,6 +162,11 @@ select:focus, select:hover { border-color: var(--neon); }
 .h200 { height: 200px; }
 .h240 { height: 240px; }
 .h280 { height: 280px; }
+.h300 { height: 300px; }
+.h320 { height: 320px; }
+.h420 { height: 420px; }
+.h150 { height: 150px; }
+.h160 { height: 160px; }
 
 /* ─── CÉLULAS ─── */
 .celulas-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
@@ -281,9 +291,9 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-left">
-    <div class="brand">MART MINAS</div>
+    <div class="brand">CENTRAL DE CHAMADOS</div>
     <div class="brand-sep"></div>
-    <div class="brand-sub">Central de Chamados</div>
+    <div class="brand-sub">Desenvolvido por Wendell França</div>
   </div>
   <div class="topbar-right">
     <div class="status-dot"></div>
@@ -327,12 +337,12 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
       <div class="kpi-top"><span class="kpi-icon">📊</span></div>
       <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:4px">
         <div>
-          <div class="kpi-val" id="kv-pct-open" style="background:linear-gradient(135deg,#3d7fff,#00c9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px">0%</div>
+          <div class="kpi-val" id="kv-pct-open" style="background:linear-gradient(135deg,#3d7fff,#00c9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:22px">0%</div>
           <div class="kpi-label">Em Aberto</div>
         </div>
         <div style="color:var(--fog);font-size:18px;margin-bottom:6px">/</div>
         <div>
-          <div class="kpi-val" id="kv-pct-closed" style="background:linear-gradient(135deg,#00e59b,#00b8a9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:32px">0%</div>
+          <div class="kpi-val" id="kv-pct-closed" style="background:linear-gradient(135deg,#00e59b,#00b8a9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:22px">0%</div>
           <div class="kpi-label">Encerrados</div>
         </div>
       </div>
@@ -347,21 +357,23 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
   <div class="charts-row">
     <div class="chart-card">
       <div class="cc-head"><div><div class="cc-title">Status</div><div class="cc-sub">Distribuição geral</div></div></div>
-      <div class="chart-box h200"><canvas id="ch-status"></canvas></div>
+      <div class="chart-box h300"><canvas id="ch-status"></canvas></div>
     </div>
-    <div class="chart-card">
-      <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 10 serviços</div></div></div>
-      <div class="chart-box h200"><canvas id="ch-grupo"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="cc-head"><div><div class="cc-title">SLA por Célula</div><div class="cc-sub">% excedido</div></div></div>
-      <div class="chart-box h200"><canvas id="ch-sla-cel"></canvas></div>
+    <div class="charts-col">
+      <div class="chart-card">
+        <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 10 serviços</div></div></div>
+        <div class="chart-box h200"><canvas id="ch-grupo"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-head"><div><div class="cc-title">SLA por Célula</div><div class="cc-sub">% excedido</div></div></div>
+        <div class="chart-box h150"><canvas id="ch-sla-cel"></canvas></div>
+      </div>
     </div>
   </div>
 
   <!-- CHARTS ROW 2 -->
   <div class="charts-row2">
-    <div class="chart-card" style="grid-column:span 2">
+    <div class="chart-card">
       <div class="cc-head">
         <div><div class="cc-title">Evolução Mensal</div><div class="cc-sub">Abertos vs Encerrados · % do total mensal</div></div>
         <div style="display:flex;gap:14px;align-items:center">
@@ -541,11 +553,70 @@ function updateCharts() {
   d.forEach(r=>{ sc[r['Status C']] = (sc[r['Status C']]||0)+1; });
   const scK = Object.keys(sc), scV = Object.values(sc);
   const scColors = {'ENCERRADOS':'#00e59b','ABERTOS':'#3d7fff','CANCELADO':'#4a5880'};
+  const scTotal = scV.reduce((a,b)=>a+b,0);
+  const statusLabelPlugin = {
+    id:'statusLabels',
+    afterDraw(chart){
+      const {ctx, chartArea} = chart;
+      const cx = chart.getDatasetMeta(0).data[0]?.x || chartArea.left + chartArea.width/2;
+      const cy = chart.getDatasetMeta(0).data[0]?.y || chartArea.top + chartArea.height/2;
+      ctx.save();
+      // Center total
+      ctx.font = 'bold 22px Bebas Neue, sans-serif';
+      ctx.fillStyle = '#e8f0ff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(scTotal.toLocaleString('pt-BR'), cx, cy - 8);
+      ctx.font = '600 9px Outfit, sans-serif'; ctx.fillStyle = '#4a5880';
+      ctx.fillText('TOTAL', cx, cy + 9);
+      // External labels on each slice
+      chart.data.datasets[0].data.forEach((val, i) => {
+        const meta = chart.getDatasetMeta(0);
+        const arc = meta.data[i];
+        if(!arc) return;
+        const midAngle = arc.startAngle + (arc.endAngle - arc.startAngle) / 2;
+        const pct = Math.round(val / scTotal * 100);
+        if(pct < 2) return; // skip tiny slices
+        const r = arc.outerRadius + 18;
+        const lx = cx + Math.cos(midAngle) * r;
+        const ly = cy + Math.sin(midAngle) * r;
+        const color = chart.data.datasets[0].backgroundColor[i];
+        // Line from arc to label
+        const r1 = arc.outerRadius + 4;
+        const r2 = arc.outerRadius + 12;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(midAngle)*r1, cy + Math.sin(midAngle)*r1);
+        ctx.lineTo(cx + Math.cos(midAngle)*r2, cy + Math.sin(midAngle)*r2);
+        ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+        // Label box
+        ctx.font = 'bold 10px Outfit, sans-serif';
+        ctx.textAlign = lx > cx ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = color;
+        ctx.fillText(val.toLocaleString('pt-BR') + '  ' + pct + '%', lx + (lx > cx ? 2 : -2), ly);
+      });
+      ctx.restore();
+    }
+  };
   charts['status'] = new Chart(document.getElementById('ch-status'), {
     type:'doughnut',
     data:{ labels:scK, datasets:[{data:scV, backgroundColor:scK.map(k=>scColors[k]||'#8899cc'), borderWidth:2, borderColor:'#10152a', hoverOffset:6}] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%',
-      plugins:{ legend:{ display:true, position:'bottom', labels:{ color:'#8899cc', font:{size:10}, padding:12 } } } }
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
+      layout:{ padding: { top:44, bottom:10, left:44, right:44 } },
+      plugins:{
+        legend:{ display:true, position:'bottom', labels:{ color:'#8899cc', font:{size:11, family:'Outfit, sans-serif'}, padding:14,
+          generateLabels: chart => chart.data.labels.map((lbl,i)=>({
+            text: lbl,
+            fillStyle: chart.data.datasets[0].backgroundColor[i],
+            strokeStyle: 'transparent',
+            fontColor: '#8899cc',
+            lineWidth:0, index:i, hidden:false
+          }))
+        }},
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.label+': '+ctx.raw.toLocaleString('pt-BR')+' ('+Math.round(ctx.raw/scTotal*100)+'%)' },
+          backgroundColor:'rgba(11,14,28,0.95)', borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
+          titleColor:'#e8f0ff', bodyColor:'#8899cc', padding:10, cornerRadius:8 }
+      }
+    },
+    plugins:[statusLabelPlugin]
   });
 
   // GRUPO BAR (horizontal)
@@ -556,7 +627,24 @@ function updateCharts() {
   charts['grupo'] = new Chart(document.getElementById('ch-grupo'), {
     type:'bar',
     data:{ labels:top10.map(x=>x[0]), datasets:[{data:top10.map(x=>x[1]), backgroundColor:'rgba(61,127,255,0.65)', borderColor:'#3d7fff', borderWidth:1, borderRadius:4 }] },
-    options:{ ...CHART_DEFAULTS, indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{...CHART_DEFAULTS.scales.x}, y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:10}}} } }
+    options:{ ...CHART_DEFAULTS, indexAxis:'y',
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.raw.toLocaleString('pt-BR')+' chamados' },
+          backgroundColor:'rgba(11,14,28,0.95)', borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
+          titleColor:'#e8f0ff', bodyColor:'#8899cc', padding:10, cornerRadius:8 }
+      },
+      scales:{
+        x:{...CHART_DEFAULTS.scales.x},
+        y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:10}}}
+      },
+      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
+        ctx.font='600 10px Outfit, sans-serif'; ctx.fillStyle='#e8f0ff'; ctx.textBaseline='middle';
+        chart.data.datasets[0].data.forEach((val,i)=>{
+          const meta=chart.getDatasetMeta(0); const bar=meta.data[i];
+          ctx.fillText(val.toLocaleString('pt-BR'), bar.x+5, bar.y);
+        });
+      }}
+    }
   });
 
   // SLA BY CELL
@@ -567,10 +655,25 @@ function updateCharts() {
     return +((cel.filter(r=>+r.SLA>1).length/cel.length)*100).toFixed(1);
   });
   const slaColors = slaData.map(v=>v>50?'rgba(255,75,110,0.75)':v>30?'rgba(255,179,71,0.75)':'rgba(0,229,155,0.65)');
+  const slaCountData = CELS.map(c=>{ const cel=d.filter(r=>r.Celula===c&&r.SLA!==''); return cel.filter(r=>+r.SLA>1).length; });
   charts['sla-cel'] = new Chart(document.getElementById('ch-sla-cel'), {
     type:'bar',
     data:{ labels:CELS.map(c=>`Cél ${c.slice(-2)}`), datasets:[{data:slaData,backgroundColor:slaColors,borderRadius:5,borderWidth:0}] },
-    options:{ ...CHART_DEFAULTS, plugins:{legend:{display:false}}, scales:{ x:{...CHART_DEFAULTS.scales.x}, y:{...CHART_DEFAULTS.scales.y,max:100,ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>v+'%'}} } }
+    options:{ ...CHART_DEFAULTS,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: (ctx)=>{ const i=ctx.dataIndex; return ' SLA Excedido: '+slaCountData[i].toLocaleString('pt-BR')+' ('+slaData[i]+'%)'; } },
+          backgroundColor:'rgba(11,14,28,0.95)', borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
+          titleColor:'#e8f0ff', bodyColor:'#8899cc', padding:10, cornerRadius:8 }
+      },
+      scales:{ x:{...CHART_DEFAULTS.scales.x}, y:{...CHART_DEFAULTS.scales.y,max:110,ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>v+'%'}} },
+      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
+        ctx.font='bold 11px Outfit, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillStyle='#e8f0ff';
+        chart.data.datasets[0].data.forEach((val,i)=>{
+          const meta=chart.getDatasetMeta(0); const bar=meta.data[i];
+          ctx.fillText(slaCountData[i].toLocaleString('pt-BR')+' | '+val+'%', bar.x, bar.y-4);
+        });
+      }}
+    }
   });
 
   // MONTHLY — abertos vs encerrados com % no tooltip
@@ -614,7 +717,7 @@ function updateCharts() {
               const idx = ctx.dataIndex;
               const tot = openVals[idx] + closedVals[idx];
               const pct = tot ? Math.round(ctx.raw/tot*100) : 0;
-              return ` ${ctx.dataset.label}: ${ctx.raw} (${pct}% do mês)`;
+              return ' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')+' ('+pct+'% do mês)';
             }
           },
           backgroundColor:'rgba(11,14,28,0.95)',
@@ -622,7 +725,19 @@ function updateCharts() {
           titleColor:'#e8f0ff', bodyColor:'#8899cc',
           padding:10, cornerRadius:8
         }
-      }
+      },
+      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
+        [0,1].forEach(di=>{
+          const meta=chart.getDatasetMeta(di); const color=di===0?'#7aafff':'#00e59b';
+          const vals=di===0?openVals:closedVals; const totals=openVals.map((v,i)=>v+closedVals[i]);
+          ctx.font='bold 9px Outfit, sans-serif'; ctx.textAlign='center'; ctx.fillStyle=color;
+          meta.data.forEach((pt,i)=>{
+            const pct=totals[i]?Math.round(vals[i]/totals[i]*100):0;
+            const yOff=di===0?-18:-8;
+            ctx.fillText(vals[i]+' ('+pct+'%)', pt.x, pt.y+yOff);
+          });
+        });
+      }}
     }
   });
 
@@ -635,7 +750,24 @@ function updateCharts() {
         { label:'Abertos', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['Status C']==='ABERTOS').length), backgroundColor:'rgba(61,127,255,0.7)', borderRadius:4, borderSkipped:false },
         { label:'Encerrados', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['Status C']==='ENCERRADOS').length), backgroundColor:'rgba(0,229,155,0.6)', borderRadius:4, borderSkipped:false }
       ]},
-    options:{ ...CHART_DEFAULTS, plugins:{ legend:{ display:true, labels:{ color:'#8899cc', font:{size:10}, boxWidth:10 } } } }
+    options:{ ...CHART_DEFAULTS,
+      plugins:{ legend:{ display:true, labels:{ color:'#8899cc', font:{size:10}, boxWidth:10 } },
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR') },
+          backgroundColor:'rgba(11,14,28,0.95)', borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
+          titleColor:'#e8f0ff', bodyColor:'#8899cc', padding:10, cornerRadius:8 }
+      },
+      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
+        ctx.font='bold 10px Outfit, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+        [0,1].forEach(di=>{
+          const meta=chart.getDatasetMeta(di); const color=di===0?'#7aafff':'#00e59b';
+          ctx.fillStyle=color;
+          meta.data.forEach((bar,i)=>{
+            const val=chart.data.datasets[di].data[i];
+            if(val>0) ctx.fillText(val.toLocaleString('pt-BR'), bar.x, bar.y-3);
+          });
+        });
+      }}
+    }
   });
 }
 
