@@ -926,7 +926,7 @@ function onFileChange(e) {
       try{
         const wb = XLSX.read(ev.target.result,{type:'binary',cellDates:true});
         const tratRaw = XLSX.utils.sheet_to_json(wb.Sheets['TRAT'],{defval:''});
-        const chamRaw = XLSX.utils.sheet_to_json(wb.Sheets['CHAMADOS'],{defval:''});
+        const chamRaw = XLSX.utils.sheet_to_json(wb.Sheets['TRAT'],{defval:''});
         const slaMap={};
         chamRaw.forEach(r=>{ if(r['CÓDIGO'])slaMap[r['CÓDIGO']]=r['SLA']; });
         const parsed = tratRaw.map(r=>{
