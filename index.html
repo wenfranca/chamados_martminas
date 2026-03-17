@@ -361,7 +361,7 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
     </div>
     <div class="charts-col">
       <div class="chart-card">
-        <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 10 serviços</div></div></div>
+        <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 5 serviços</div></div></div>
         <div class="chart-box h200"><canvas id="ch-grupo"></canvas></div>
       </div>
       <div class="chart-card">
@@ -408,13 +408,13 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
       <table>
         <thead>
           <tr>
-            <th onclick="setSort('CODIGO')">Código</th>
-            <th onclick="setSort('UNIDADE')">Unidade</th>
-            <th onclick="setSort('CELULAS')">Célula</th>
-            <th onclick="setSort('GRUPO')">Grupo</th>
-            <th onclick="setSort('STATUS')">Status</th>
-            <th onclick="setSort('ABERTURA')">Abertura</th>
-            <th onclick="setSort('PREVISÃO')">Previsão</th>
+            <th onclick="setSort('Código')">Código</th>
+            <th onclick="setSort('Unidade')">Unidade</th>
+            <th onclick="setSort('Celula')">Célula</th>
+            <th onclick="setSort('Grupo C')">Grupo</th>
+            <th onclick="setSort('Status C')">Status</th>
+            <th onclick="setSort('Abertura')">Abertura</th>
+            <th onclick="setSort('Previsão')">Previsão</th>
             <th onclick="setSort('Dias')">Dias ↕</th>
             <th onclick="setSort('SLA')">SLA ↕</th>
           </tr>
@@ -435,7 +435,7 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
 // STATE
 // ══════════════════════════════════════════
 let RAW = [], FILTERED = [], TABLE_FILTERED = [];
-let sortKey = 'ABERTURA', sortDir = -1, page = 1;
+let sortKey = 'Abertura', sortDir = -1, page = 1;
 const PER_PAGE = 60;
 let charts = {};
 
@@ -449,48 +449,10 @@ const CHART_DEFAULTS = {
 };
 
 // ══════════════════════════════════════════
-// BOOT — carrega da planilha Google Sheets
+// BOOT
 // ══════════════════════════════════════════
-
-
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzNiTvabJlql6DF2W4szcJKxVOLy8CzcdJBa1XpeDybCnjUsz-CN0t9WHbwB2tojKKJ/exec";
-
-function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
-  return lines.slice(1).map(line => {
-    const cols = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
-      else { cur += c; }
-    }
-    cols.push(cur);
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim(); });
-    return obj;
-  });
-}
-
-async function carregarChamados() {
-  try {
-    const response = await fetch(SHEET_URL);
-    if (!response.ok) throw new Error('Falha ao buscar planilha');
-    const dados = await response.json();
-    boot(dados);
-  } catch (err) {
-    console.error('Erro ao carregar chamados:', err);
-    document.getElementById('loader').innerHTML =
-      '<div style="color:#ff4b6e;font-size:14px;">⚠ Erro ao carregar dados. Verifique se a planilha está pública.</div>';
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-  carregarChamados();
-  // Auto-atualizar a cada 30 segundos
-  setInterval(carregarChamados, 30000);
+  if (typeof EMBED !== 'undefined') boot(EMBED);
 });
 
 function boot(data) {
@@ -500,8 +462,7 @@ function boot(data) {
   document.getElementById('loader').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   const sorted = [...data].map(d=>d.Abertura).filter(Boolean).sort();
-  const agora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  document.getElementById('last-sync').textContent = 'Atualizado às ' + agora;
+  document.getElementById('last-sync').textContent = 'Atualizado: ' + (sorted[sorted.length-1] || '—');
 }
 
 // ══════════════════════════════════════════
@@ -509,10 +470,10 @@ function boot(data) {
 // ══════════════════════════════════════════
 function buildFilters() {
   const uniq = (key) => [...new Set(RAW.map(r=>r[key]).filter(v=>v&&v!=='-'))].sort();
-  fill('f-celula', uniq('CELULAS'));
-  fill('f-grupo', uniq('GRUPO'));
-  fill('f-statusc', uniq('STATUS'));
-  fill('f-unidade', uniq('UNIDADE'));
+  fill('f-celula', uniq('Celula'));
+  fill('f-grupo', uniq('Grupo C'));
+  fill('f-statusc', uniq('Status C'));
+  fill('f-unidade', uniq('Unidade'));
   fill('f-ano', uniq('ANO').reverse());
 }
 function fill(id, vals) {
@@ -526,13 +487,13 @@ function applyFilters() {
   const celula = gv('f-celula'), grupo = gv('f-grupo'), statusc = gv('f-statusc'),
         unidade = gv('f-unidade'), ano = gv('f-ano'), sla = gv('f-sla');
   FILTERED = RAW.filter(r => {
-    if (celula && r['CELULAS'] !== celula) return false;
-    if (grupo && r['GRUPO'] !== grupo) return false;
-    if (statusc && r['STATUS'] !== statusc) return false;
-    if (unidade && r['UNIDADE'] !== unidade) return false;
+    if (celula && r['Celula'] !== celula) return false;
+    if (grupo && r['Grupo C'] !== grupo) return false;
+    if (statusc && r['Status C'] !== statusc) return false;
+    if (unidade && r['Unidade'] !== unidade) return false;
     if (ano && String(r['ANO']) !== String(ano)) return false;
-    if (sla === 'ok' && !(r['SLA'] !== '' && +r['SLA'] <= 1)) return false;
-    if (sla === 'over' && !(r['SLA'] !== '' && +r['SLA'] > 1)) return false;
+    if (sla === 'ok' && !(r.SLA !== '' && +r.SLA <= 1)) return false;
+    if (sla === 'over' && !(r.SLA !== '' && +r.SLA > 1)) return false;
     return true;
   });
   page = 1;
@@ -559,10 +520,10 @@ function render() {
 function updateKPIs() {
   const d = FILTERED;
   const total = d.length;
-  const closed = d.filter(r=>r['STATUS']==='ENCERRADOS').length;
-  const open = d.filter(r=>r['STATUS']==='ABERTOS').length;
-  const slaOver = d.filter(r=>r['SLA']!==''&&+r['SLA']>1).length;
-  const dias = d.filter(r=>r['DIAS']!=='').map(r=>+r['DIAS']);
+  const closed = d.filter(r=>r['Status C']==='ENCERRADOS').length;
+  const open = d.filter(r=>r['Status C']==='ABERTOS').length;
+  const slaOver = d.filter(r=>r.SLA!==''&&+r.SLA>1).length;
+  const dias = d.filter(r=>r.Dias!=='').map(r=>+r.Dias);
   const avg = dias.length ? (dias.reduce((a,b)=>a+b,0)/dias.length).toFixed(1) : 0;
   document.getElementById('kv-total').textContent = fmt(total);
   document.getElementById('kv-closed').textContent = fmt(closed);
@@ -589,7 +550,7 @@ function updateCharts() {
   // STATUS DOUGHNUT
   destroyChart('status');
   const sc = {};
-  d.forEach(r=>{ sc[r['STATUS']] = (sc[r['STATUS']]||0)+1; });
+  d.forEach(r=>{ sc[r['Status C']] = (sc[r['Status C']]||0)+1; });
   const scK = Object.keys(sc), scV = Object.values(sc);
   const scColors = {'ENCERRADOS':'#00e59b','ABERTOS':'#3d7fff','CANCELADO':'#4a5880'};
   const scTotal = scV.reduce((a,b)=>a+b,0);
@@ -661,8 +622,8 @@ function updateCharts() {
   // GRUPO BAR (horizontal)
   destroyChart('grupo');
   const gc = {};
-  d.forEach(r=>{ if(r['GRUPO']&&r['GRUPO']!=='-') gc[r['GRUPO']]=(gc[r['GRUPO']]||0)+1; });
-  const top10 = Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  d.forEach(r=>{ if(r['Grupo C']&&r['Grupo C']!=='-') gc[r['Grupo C']]=(gc[r['Grupo C']]||0)+1; });
+  const top10 = Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,5);
   charts['grupo'] = new Chart(document.getElementById('ch-grupo'), {
     type:'bar',
     data:{ labels:top10.map(x=>x[0]), datasets:[{data:top10.map(x=>x[1]), backgroundColor:'rgba(61,127,255,0.65)', borderColor:'#3d7fff', borderWidth:1, borderRadius:4 }] },
@@ -689,12 +650,12 @@ function updateCharts() {
   // SLA BY CELL
   destroyChart('sla-cel');
   const slaData = CELS.map(c=>{
-    const cel = d.filter(r=>r.Celula===c&&r['SLA']!=='');
+    const cel = d.filter(r=>r.Celula===c&&r.SLA!=='');
     if(!cel.length) return 0;
-    return +((cel.filter(r=>+r['SLA']>1).length/cel.length)*100).toFixed(1);
+    return +((cel.filter(r=>+r.SLA>1).length/cel.length)*100).toFixed(1);
   });
   const slaColors = slaData.map(v=>v>50?'rgba(255,75,110,0.75)':v>30?'rgba(255,179,71,0.75)':'rgba(0,229,155,0.65)');
-  const slaCountData = CELS.map(c=>{ const cel=d.filter(r=>r.Celula===c&&r['SLA']!==''); return cel.filter(r=>+r['SLA']>1).length; });
+  const slaCountData = CELS.map(c=>{ const cel=d.filter(r=>r.Celula===c&&r.SLA!==''); return cel.filter(r=>+r.SLA>1).length; });
   charts['sla-cel'] = new Chart(document.getElementById('ch-sla-cel'), {
     type:'bar',
     data:{ labels:CELS.map(c=>`Cél ${c.slice(-2)}`), datasets:[{data:slaData,backgroundColor:slaColors,borderRadius:5,borderWidth:0}] },
@@ -715,18 +676,20 @@ function updateCharts() {
     }
   });
 
-  // MONTHLY — abertos vs encerrados com % no tooltip
+  // MONTHLY — total abertos vs encerrados por mês de abertura
   destroyChart('monthly');
-  const monOpen = {}, monClosed = {};
+  const monAll = {}, monOpen = {}, monClosed = {};
   d.forEach(r=>{
-    if(!r['ABERTURA']) return;
-    const m = r['ABERTURA'].slice(0,7);
-    if(r['STATUS']==='ABERTOS')   monOpen[m]   = (monOpen[m]||0)+1;
-    if(r['STATUS']==='ENCERRADOS') monClosed[m] = (monClosed[m]||0)+1;
+    if(!r.Abertura || r.Abertura.length < 7) return;
+    const m = r.Abertura.slice(0,7);
+    monAll[m] = (monAll[m]||0)+1;
+    if(r['Status C']==='ABERTOS')    monOpen[m]   = (monOpen[m]||0)+1;
+    if(r['Status C']==='ENCERRADOS') monClosed[m] = (monClosed[m]||0)+1;
   });
-  const allMonths = [...new Set([...Object.keys(monOpen),...Object.keys(monClosed)])].sort().slice(-14);
+  const allMonths = Object.keys(monAll).sort().slice(-14);
   const openVals   = allMonths.map(k=>monOpen[k]||0);
   const closedVals = allMonths.map(k=>monClosed[k]||0);
+  const totalVals  = allMonths.map(k=>monAll[k]||0);
   const gradOpen = (ctx) => {
     const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
     g.addColorStop(0,'rgba(61,127,255,0.35)'); g.addColorStop(1,'rgba(61,127,255,0)'); return g;
@@ -735,27 +698,53 @@ function updateCharts() {
     const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
     g.addColorStop(0,'rgba(0,229,155,0.25)'); g.addColorStop(1,'rgba(0,229,155,0)'); return g;
   };
+  const monthlyLabelPlugin = {
+    id:'monthlyLabels',
+    afterDatasetsDraw(chart){
+      const {ctx} = chart;
+      ctx.save();
+      [0,1].forEach(di=>{
+        const meta = chart.getDatasetMeta(di);
+        if(!meta || meta.hidden) return;
+        const vals   = di===0 ? openVals : closedVals;
+        const color  = di===0 ? '#7aafff' : '#00e59b';
+        const yOff   = di===0 ? -14 : -6;
+        ctx.font = 'bold 9px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = color;
+        meta.data.forEach((pt, i)=>{
+          const pct = totalVals[i] ? Math.round(vals[i]/totalVals[i]*100) : 0;
+          ctx.fillText(vals[i]+' ('+pct+'%)', pt.x, pt.y + yOff);
+        });
+      });
+      ctx.restore();
+    }
+  };
+
   charts['monthly'] = new Chart(document.getElementById('ch-monthly'), {
     type:'line',
     data:{
       labels: allMonths.map(k=>{ const[y,m]=k.split('-'); return`${m}/${y.slice(2)}`; }),
       datasets:[
-        { label:'Abertos', data:openVals, borderColor:'#3d7fff', backgroundColor:function(ctx){return gradOpen(ctx);},
+        { label:'Abertos', data:openVals, borderColor:'#3d7fff',
+          backgroundColor:'rgba(61,127,255,0.15)',
           tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#3d7fff', pointBorderColor:'#10152a', pointBorderWidth:2 },
-        { label:'Encerrados', data:closedVals, borderColor:'#00e59b', backgroundColor:function(ctx){return gradClosed(ctx);},
+        { label:'Encerrados', data:closedVals, borderColor:'#00e59b',
+          backgroundColor:'rgba(0,229,155,0.1)',
           tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#00e59b', pointBorderColor:'#10152a', pointBorderWidth:2 }
       ]
     },
     options:{
       ...CHART_DEFAULTS,
+      layout:{ padding:{ top:22 } },
       plugins:{
         legend:{ display:false },
         tooltip:{
           callbacks:{
             label: function(ctx){
               const idx = ctx.dataIndex;
-              const tot = openVals[idx] + closedVals[idx];
-              const pct = tot ? Math.round(ctx.raw/tot*100) : 0;
+              const tot = totalVals[idx] || 1;
+              const pct = Math.round(ctx.raw/tot*100);
               return ' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')+' ('+pct+'% do mês)';
             }
           },
@@ -764,20 +753,9 @@ function updateCharts() {
           titleColor:'#e8f0ff', bodyColor:'#8899cc',
           padding:10, cornerRadius:8
         }
-      },
-      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
-        [0,1].forEach(di=>{
-          const meta=chart.getDatasetMeta(di); const color=di===0?'#7aafff':'#00e59b';
-          const vals=di===0?openVals:closedVals; const totals=openVals.map((v,i)=>v+closedVals[i]);
-          ctx.font='bold 9px Outfit, sans-serif'; ctx.textAlign='center'; ctx.fillStyle=color;
-          meta.data.forEach((pt,i)=>{
-            const pct=totals[i]?Math.round(vals[i]/totals[i]*100):0;
-            const yOff=di===0?-18:-8;
-            ctx.fillText(vals[i]+' ('+pct+'%)', pt.x, pt.y+yOff);
-          });
-        });
-      }}
-    }
+      }
+    },
+    plugins:[monthlyLabelPlugin]
   });
 
   // CELL GROUPED BAR
@@ -786,8 +764,8 @@ function updateCharts() {
     type:'bar',
     data:{ labels:CELS.map(c=>`Célula ${c.slice(-2)}`),
       datasets:[
-        { label:'Abertos', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['STATUS']==='ABERTOS').length), backgroundColor:'rgba(61,127,255,0.7)', borderRadius:4, borderSkipped:false },
-        { label:'Encerrados', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['STATUS']==='ENCERRADOS').length), backgroundColor:'rgba(0,229,155,0.6)', borderRadius:4, borderSkipped:false }
+        { label:'Abertos', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['Status C']==='ABERTOS').length), backgroundColor:'rgba(61,127,255,0.7)', borderRadius:4, borderSkipped:false },
+        { label:'Encerrados', data:CELS.map(c=>d.filter(r=>r.Celula===c&&r['Status C']==='ENCERRADOS').length), backgroundColor:'rgba(0,229,155,0.6)', borderRadius:4, borderSkipped:false }
       ]},
     options:{ ...CHART_DEFAULTS,
       plugins:{ legend:{ display:true, labels:{ color:'#8899cc', font:{size:10}, boxWidth:10 } },
@@ -817,12 +795,12 @@ function updateCelCards() {
   const container = document.getElementById('cel-cards');
   container.innerHTML = CELS.map((c,i)=>{
     const cel = FILTERED.filter(r=>r.Celula===c);
-    const open = cel.filter(r=>r['STATUS']==='ABERTOS').length;
-    const closed = cel.filter(r=>r['STATUS']==='ENCERRADOS').length;
-    const withSLA = cel.filter(r=>r['SLA']!=='');
-    const slaOver = withSLA.filter(r=>+r['SLA']>1).length;
+    const open = cel.filter(r=>r['Status C']==='ABERTOS').length;
+    const closed = cel.filter(r=>r['Status C']==='ENCERRADOS').length;
+    const withSLA = cel.filter(r=>r.SLA!=='');
+    const slaOver = withSLA.filter(r=>+r.SLA>1).length;
     const slaPct = withSLA.length ? Math.round(slaOver/withSLA.length*100) : 0;
-    const dias = cel.filter(r=>r['DIAS']!=='').map(r=>+r['DIAS']);
+    const dias = cel.filter(r=>r.Dias!=='').map(r=>+r.Dias);
     const avgD = dias.length ? (dias.reduce((a,b)=>a+b,0)/dias.length).toFixed(1) : '—';
     const barColor = slaPct>50?'var(--hot)':slaPct>30?'var(--warm)':'var(--mint)';
     return `<div class="cel-card">
@@ -851,10 +829,10 @@ function setSort(key) {
 function renderTable() {
   const q = document.getElementById('tbl-search').value.toLowerCase();
   TABLE_FILTERED = FILTERED.filter(r=>!q||
-    r['CODIGO'].toLowerCase().includes(q)||
-    r['UNIDADE'].toLowerCase().includes(q)||
-    (r['GRUPO']||'').toLowerCase().includes(q)||
-    r['CELULAS'].toLowerCase().includes(q)
+    r['Código'].toLowerCase().includes(q)||
+    r['Unidade'].toLowerCase().includes(q)||
+    (r['GrupoShort']||'').toLowerCase().includes(q)||
+    r['Celula'].toLowerCase().includes(q)
   );
   TABLE_FILTERED.sort((a,b)=>{
     let va=a[sortKey]??'', vb=b[sortKey]??'';
@@ -869,20 +847,20 @@ function renderTable() {
 
   const chipMap = {'ABERTOS':'chip-open','ENCERRADOS':'chip-closed','CANCELADO':'chip-cancel'};
   document.getElementById('tbl-body').innerHTML = slice.map(r=>{
-    const sc = r['STATUS'];
+    const sc = r['Status C'];
     const chipCls = chipMap[sc]||'chip-pending';
-    const slaV = r['SLA']!==''?+r['SLA']:null;
+    const slaV = r.SLA!==''?+r.SLA:null;
     const slaCls = slaV===null?'':(slaV>1?'sla-bad':'sla-ok');
     const slaTxt = slaV===null?'—':slaV.toFixed(2);
     return `<tr>
-      <td class="code">${r['CODIGO'] || ''}</td>
-      <td class="unit" title="${r['UNIDADE']}">${r['UNIDADE']}</td>
-      <td class="cel-tag">${r['CELULAS']}</td>
-      <td>${r['GRUPO']||r['GRUPO']||'—'}</td>
-      <td><span class="chip ${chipCls}">${sc||r['STATUS']}</span></td>
-      <td style="color:var(--fog);font-size:11px">${r['ABERTURA']||'—'}</td>
-      <td style="color:var(--fog);font-size:11px">${r['PREVISÃO']||'—'}</td>
-      <td style="text-align:center">${r['DIAS'] || 0!==''?r['DIAS'] || 0:'—'}</td>
+      <td class="code">${r['Código']}</td>
+      <td class="unit" title="${r['Unidade']}">${r['Unidade']}</td>
+      <td class="cel-tag">${r['Celula']}</td>
+      <td>${r['Grupo C']||r['GrupoShort']||'—'}</td>
+      <td><span class="chip ${chipCls}">${sc||r['Status']}</span></td>
+      <td style="color:var(--fog);font-size:11px">${r['Abertura']||'—'}</td>
+      <td style="color:var(--fog);font-size:11px">${r['Previsão']||'—'}</td>
+      <td style="text-align:center">${r['Dias']!==''?r['Dias']:'—'}</td>
       <td>${slaV!==null?`<span class="sla-chip ${slaCls}"><span class="dot"></span>${slaTxt}</span>`:'—'}</td>
     </tr>`;
   }).join('');
@@ -928,17 +906,17 @@ function onFileChange(e) {
         const tratRaw = XLSX.utils.sheet_to_json(wb.Sheets['TRAT'],{defval:''});
         const chamRaw = XLSX.utils.sheet_to_json(wb.Sheets['CHAMADOS'],{defval:''});
         const slaMap={};
-        chamRaw.forEach(r=>{ if(r['CODIGO'])slaMap[r['CODIGO']]=r['SLA']; });
+        chamRaw.forEach(r=>{ if(r['CÓDIGO'])slaMap[r['CÓDIGO']]=r['SLA']; });
         const parsed = tratRaw.map(r=>{
-          const ab=r['ABERTURA'] instanceof Date?r['ABERTURA'].toISOString().slice(0,10):(r['ABERTURA']?String(r['ABERTURA']).slice(0,10):'');
-          const pv=r['PREVISÃO'] instanceof Date?r['PREVISÃO'].toISOString().slice(0,10):(r['PREVISÃO']?String(r['PREVISÃO']).slice(0,10):'');
-          const grupo=r['GRUPO']?String(r['GRUPO']).split('/').pop():'';
-          const sla=slaMap[r['CODIGO']]!==undefined?slaMap[r['CODIGO']]:'';
+          const ab=r['Abertura'] instanceof Date?r['Abertura'].toISOString().slice(0,5):(r['Abertura']?String(r['Abertura']).slice(0,5):'');
+          const pv=r['Previsão'] instanceof Date?r['Previsão'].toISOString().slice(0,5):(r['Previsão']?String(r['Previsão']).slice(0,5):'');
+          const grupo=r['Grupo']?String(r['Grupo']).split('/').pop():'';
+          const sla=slaMap[r['Código']]!==undefined?slaMap[r['Código']]:'';
           return{
-            'CODIGO':r['CODIGO']||'','UNIDADE':r['UNIDADE']||'','Loja':r['LOJA']||'',
-            'Status':r['STATUS']||'','STATUS':r['STATUS']||'','CELULAS':r['CELULAS']||'',
-            'GRUPO':r['GRUPO']||'','GrupoShort':grupo,'ABERTURA':ab,'PREVISÃO':pv,
-            'Dias':r['DIAS'] || 0!==''?r['DIAS'] || 0:'','SLA':sla,'ANO':r['ANO']||''
+            'Código':r['Código']||'','Unidade':r['Unidade']||'','Loja':r['Loja']||'',
+            'Status':r['Status']||'','Status C':r['Status C']||'','Celula':r['Celula']||'',
+            'Grupo C':r['Grupo C']||'','GrupoShort':grupo,'Abertura':ab,'Previsão':pv,
+            'Dias':r['Dias']!==''?r['Dias']:'','SLA':sla,'ANO':r['ANO']||''
           };
         });
         document.getElementById('loader').style.display='none';
