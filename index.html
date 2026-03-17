@@ -449,10 +449,48 @@ const CHART_DEFAULTS = {
 };
 
 // ══════════════════════════════════════════
-// BOOT
+// BOOT — carrega da planilha Google Sheets
 // ══════════════════════════════════════════
+
+
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzNiTvabJlql6DF2W4szcJKxVOLy8CzcdJBa1XpeDybCnjUsz-CN0t9WHbwB2tojKKJ/exec";
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+  return lines.slice(1).map(line => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+    cols.push(cur);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (cols[i] || '').trim(); });
+    return obj;
+  });
+}
+
+async function carregarChamados() {
+  try {
+    const response = await fetch(SHEET_URL);
+    if (!response.ok) throw new Error('Falha ao buscar planilha');
+    const dados = await response.json();
+    boot(dados);
+  } catch (err) {
+    console.error('Erro ao carregar chamados:', err);
+    document.getElementById('loader').innerHTML =
+      '<div style="color:#ff4b6e;font-size:14px;">⚠ Erro ao carregar dados. Verifique se a planilha está pública.</div>';
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  if (typeof EMBED !== 'undefined') boot(EMBED);
+  carregarChamados();
+  // Auto-atualizar a cada 30 segundos
+  setInterval(carregarChamados, 30000);
 });
 
 function boot(data) {
@@ -462,7 +500,8 @@ function boot(data) {
   document.getElementById('loader').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   const sorted = [...data].map(d=>d.Abertura).filter(Boolean).sort();
-  document.getElementById('last-sync').textContent = 'Atualizado: ' + (sorted[sorted.length-1] || '—');
+  const agora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('last-sync').textContent = 'Atualizado às ' + agora;
 }
 
 // ══════════════════════════════════════════
