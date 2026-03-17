@@ -147,6 +147,7 @@ select:focus, select:hover { border-color: var(--neon); }
 .charts-col { display: flex; flex-direction: column; gap: 14px; }
 .charts-col .chart-card { flex: 1; display: flex; flex-direction: column; }
 .charts-col .chart-card .chart-box { flex: 1; height: auto !important; min-height: 130px; }
+.charts-col .chart-card:first-child .chart-box { min-height: 420px; }
 .charts-row > .chart-card { display: flex; flex-direction: column; }
 .charts-row > .chart-card .chart-box { flex: 1; height: auto !important; min-height: 200px; }
 .charts-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
@@ -361,8 +362,8 @@ td.cel-tag { font-size: 10px; font-weight: 700; color: var(--neon); letter-spaci
     </div>
     <div class="charts-col">
       <div class="chart-card">
-        <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 5 serviços</div></div></div>
-        <div class="chart-box h200"><canvas id="ch-grupo"></canvas></div>
+        <div class="cc-head"><div><div class="cc-title">Chamados por Grupo de Serviço</div><div class="cc-sub">Top 10 serviços</div></div></div>
+        <div class="chart-box h420"><canvas id="ch-grupo"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="cc-head"><div><div class="cc-title">SLA por Célula</div><div class="cc-sub">% excedido</div></div></div>
@@ -623,7 +624,7 @@ function updateCharts() {
   destroyChart('grupo');
   const gc = {};
   d.forEach(r=>{ if(r['Grupo C']&&r['Grupo C']!=='-') gc[r['Grupo C']]=(gc[r['Grupo C']]||0)+1; });
-  const top10 = Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const top10 = Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,10);
   charts['grupo'] = new Chart(document.getElementById('ch-grupo'), {
     type:'bar',
     data:{ labels:top10.map(x=>x[0]), datasets:[{data:top10.map(x=>x[1]), backgroundColor:'rgba(61,127,255,0.65)', borderColor:'#3d7fff', borderWidth:1, borderRadius:4 }] },
@@ -635,7 +636,7 @@ function updateCharts() {
       },
       scales:{
         x:{...CHART_DEFAULTS.scales.x},
-        y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:10}}}
+        y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:11}}, barThickness:22}
       },
       animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
         ctx.font='600 10px Outfit, sans-serif'; ctx.fillStyle='#e8f0ff'; ctx.textBaseline='middle';
@@ -676,20 +677,18 @@ function updateCharts() {
     }
   });
 
-  // MONTHLY — total abertos vs encerrados por mês de abertura
+  // MONTHLY — abertos vs encerrados com % no tooltip
   destroyChart('monthly');
-  const monAll = {}, monOpen = {}, monClosed = {};
+  const monOpen = {}, monClosed = {};
   d.forEach(r=>{
-    if(!r.Abertura || r.Abertura.length < 7) return;
+    if(!r.Abertura) return;
     const m = r.Abertura.slice(0,7);
-    monAll[m] = (monAll[m]||0)+1;
-    if(r['Status C']==='ABERTOS')    monOpen[m]   = (monOpen[m]||0)+1;
+    if(r['Status C']==='ABERTOS')   monOpen[m]   = (monOpen[m]||0)+1;
     if(r['Status C']==='ENCERRADOS') monClosed[m] = (monClosed[m]||0)+1;
   });
-  const allMonths = Object.keys(monAll).sort().slice(-14);
+  const allMonths = [...new Set([...Object.keys(monOpen),...Object.keys(monClosed)])].sort().slice(-14);
   const openVals   = allMonths.map(k=>monOpen[k]||0);
   const closedVals = allMonths.map(k=>monClosed[k]||0);
-  const totalVals  = allMonths.map(k=>monAll[k]||0);
   const gradOpen = (ctx) => {
     const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
     g.addColorStop(0,'rgba(61,127,255,0.35)'); g.addColorStop(1,'rgba(61,127,255,0)'); return g;
@@ -698,53 +697,27 @@ function updateCharts() {
     const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
     g.addColorStop(0,'rgba(0,229,155,0.25)'); g.addColorStop(1,'rgba(0,229,155,0)'); return g;
   };
-  const monthlyLabelPlugin = {
-    id:'monthlyLabels',
-    afterDatasetsDraw(chart){
-      const {ctx} = chart;
-      ctx.save();
-      [0,1].forEach(di=>{
-        const meta = chart.getDatasetMeta(di);
-        if(!meta || meta.hidden) return;
-        const vals   = di===0 ? openVals : closedVals;
-        const color  = di===0 ? '#7aafff' : '#00e59b';
-        const yOff   = di===0 ? -14 : -6;
-        ctx.font = 'bold 9px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = color;
-        meta.data.forEach((pt, i)=>{
-          const pct = totalVals[i] ? Math.round(vals[i]/totalVals[i]*100) : 0;
-          ctx.fillText(vals[i]+' ('+pct+'%)', pt.x, pt.y + yOff);
-        });
-      });
-      ctx.restore();
-    }
-  };
-
   charts['monthly'] = new Chart(document.getElementById('ch-monthly'), {
     type:'line',
     data:{
       labels: allMonths.map(k=>{ const[y,m]=k.split('-'); return`${m}/${y.slice(2)}`; }),
       datasets:[
-        { label:'Abertos', data:openVals, borderColor:'#3d7fff',
-          backgroundColor:'rgba(61,127,255,0.15)',
+        { label:'Abertos', data:openVals, borderColor:'#3d7fff', backgroundColor:function(ctx){return gradOpen(ctx);},
           tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#3d7fff', pointBorderColor:'#10152a', pointBorderWidth:2 },
-        { label:'Encerrados', data:closedVals, borderColor:'#00e59b',
-          backgroundColor:'rgba(0,229,155,0.1)',
+        { label:'Encerrados', data:closedVals, borderColor:'#00e59b', backgroundColor:function(ctx){return gradClosed(ctx);},
           tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#00e59b', pointBorderColor:'#10152a', pointBorderWidth:2 }
       ]
     },
     options:{
       ...CHART_DEFAULTS,
-      layout:{ padding:{ top:22 } },
       plugins:{
         legend:{ display:false },
         tooltip:{
           callbacks:{
             label: function(ctx){
               const idx = ctx.dataIndex;
-              const tot = totalVals[idx] || 1;
-              const pct = Math.round(ctx.raw/tot*100);
+              const tot = openVals[idx] + closedVals[idx];
+              const pct = tot ? Math.round(ctx.raw/tot*100) : 0;
               return ' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')+' ('+pct+'% do mês)';
             }
           },
@@ -753,9 +726,20 @@ function updateCharts() {
           titleColor:'#e8f0ff', bodyColor:'#8899cc',
           padding:10, cornerRadius:8
         }
-      }
-    },
-    plugins:[monthlyLabelPlugin]
+      },
+      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
+        [0,1].forEach(di=>{
+          const meta=chart.getDatasetMeta(di); const color=di===0?'#7aafff':'#00e59b';
+          const vals=di===0?openVals:closedVals; const totals=openVals.map((v,i)=>v+closedVals[i]);
+          ctx.font='bold 9px Outfit, sans-serif'; ctx.textAlign='center'; ctx.fillStyle=color;
+          meta.data.forEach((pt,i)=>{
+            const pct=totals[i]?Math.round(vals[i]/totals[i]*100):0;
+            const yOff=di===0?-18:-8;
+            ctx.fillText(vals[i]+' ('+pct+'%)', pt.x, pt.y+yOff);
+          });
+        });
+      }}
+    }
   });
 
   // CELL GROUPED BAR
@@ -908,8 +892,8 @@ function onFileChange(e) {
         const slaMap={};
         chamRaw.forEach(r=>{ if(r['CÓDIGO'])slaMap[r['CÓDIGO']]=r['SLA']; });
         const parsed = tratRaw.map(r=>{
-          const ab=r['Abertura'] instanceof Date?r['Abertura'].toISOString().slice(0,5):(r['Abertura']?String(r['Abertura']).slice(0,5):'');
-          const pv=r['Previsão'] instanceof Date?r['Previsão'].toISOString().slice(0,5):(r['Previsão']?String(r['Previsão']).slice(0,5):'');
+          const ab=r['Abertura'] instanceof Date?r['Abertura'].toISOString().slice(0,10):(r['Abertura']?String(r['Abertura']).slice(0,10):'');
+          const pv=r['Previsão'] instanceof Date?r['Previsão'].toISOString().slice(0,10):(r['Previsão']?String(r['Previsão']).slice(0,10):'');
           const grupo=r['Grupo']?String(r['Grupo']).split('/').pop():'';
           const sla=slaMap[r['Código']]!==undefined?slaMap[r['Código']]:'';
           return{
