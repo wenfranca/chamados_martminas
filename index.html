@@ -620,29 +620,41 @@ function updateCharts() {
     plugins:[statusLabelPlugin]
   });
 
-  // GRUPO BAR (horizontal)
+  // GRUPO BAR (horizontal) — Abertos vs Encerrados
   destroyChart('grupo');
   const gc = {};
   d.forEach(r=>{ if(r['Grupo C']&&r['Grupo C']!=='-') gc[r['Grupo C']]=(gc[r['Grupo C']]||0)+1; });
   const top10 = Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top10Labels = top10.map(x=>x[0]);
+  const gcAbertos   = top10Labels.map(g=>d.filter(r=>r['Grupo C']===g&&r['Status C']==='ABERTOS').length);
+  const gcEncerrados= top10Labels.map(g=>d.filter(r=>r['Grupo C']===g&&r['Status C']==='ENCERRADOS').length);
   charts['grupo'] = new Chart(document.getElementById('ch-grupo'), {
     type:'bar',
-    data:{ labels:top10.map(x=>x[0]), datasets:[{data:top10.map(x=>x[1]), backgroundColor:'rgba(61,127,255,0.65)', borderColor:'#3d7fff', borderWidth:1, borderRadius:4 }] },
+    data:{ labels:top10Labels, datasets:[
+      { label:'Abertos',    data:gcAbertos,    backgroundColor:'rgba(61,127,255,0.75)', borderColor:'#3d7fff', borderWidth:1, borderRadius:4 },
+      { label:'Encerrados', data:gcEncerrados, backgroundColor:'rgba(0,229,155,0.65)',  borderColor:'#00e59b', borderWidth:1, borderRadius:4 }
+    ]},
     options:{ ...CHART_DEFAULTS, indexAxis:'y',
-      plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label: ctx => ' '+ctx.raw.toLocaleString('pt-BR')+' chamados' },
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ color:'#8899cc', font:{size:11, family:'Outfit, sans-serif'}, padding:16, boxWidth:12, boxHeight:12 }},
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR') },
           backgroundColor:'rgba(11,14,28,0.95)', borderColor:'rgba(30,40,69,0.8)', borderWidth:1,
           titleColor:'#e8f0ff', bodyColor:'#8899cc', padding:10, cornerRadius:8 }
       },
       scales:{
         x:{...CHART_DEFAULTS.scales.x},
-        y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:11}}, barThickness:22}
+        y:{...CHART_DEFAULTS.scales.y, ticks:{color:'#8899cc',font:{size:11}}}
       },
-      animation:{ onComplete: function(){ const chart=this; const ctx=chart.ctx;
-        ctx.font='600 10px Outfit, sans-serif'; ctx.fillStyle='#e8f0ff'; ctx.textBaseline='middle';
-        chart.data.datasets[0].data.forEach((val,i)=>{
-          const meta=chart.getDatasetMeta(0); const bar=meta.data[i];
-          ctx.fillText(val.toLocaleString('pt-BR'), bar.x+5, bar.y);
+      animation:{ onComplete: function(){
+        const chart=this; const ctx=chart.ctx;
+        ctx.font='600 10px Outfit, sans-serif'; ctx.textBaseline='middle';
+        chart.data.datasets.forEach((ds,di)=>{
+          ctx.fillStyle = di===0 ? '#7fb3ff' : '#00e59b';
+          const meta=chart.getDatasetMeta(di);
+          meta.data.forEach((bar,i)=>{
+            const val=ds.data[i];
+            if(val>0) ctx.fillText(val.toLocaleString('pt-BR'), bar.x+5, bar.y);
+          });
         });
       }}
     }
