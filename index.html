@@ -523,7 +523,7 @@ function render() {
 
 // ── KPIs ──
 function updateKPIs() {
-  const d = FILTERED;
+  const d = FILTERED.filter(r=>r['Código']&&r['Código'].trim()!=='');
   const total = d.length;
   const closed = d.filter(r=>r['Status C']==='ENCERRADOS').length;
   const open = d.filter(r=>r['Status C']==='ABERTOS').length;
